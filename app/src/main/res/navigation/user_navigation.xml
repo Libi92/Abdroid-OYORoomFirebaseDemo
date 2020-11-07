@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/user_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.application.pglocator.ui.home.HomeFragment"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_nav_home_to_nav_pgdetails"
+            app:destination="@id/nav_pgdetails" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_requests"
+        android:name="com.application.pglocator.ui.feedback.FeedbackFragment"
+        android:label="@string/menu_requests"
+        tools:layout="@layout/fragment_feedback" />
+
+    <fragment
+        android:id="@+id/nav_feedback"
+        android:name="com.application.pglocator.ui.requests.RequestsFragment"
+        android:label="@string/menu_feedback"
+        tools:layout="@layout/fragment_requests" />
+
+    <fragment
+        android:id="@+id/nav_pgdetails"
+        android:name="com.application.pglocator.ui.PGDetailsFragment"
+        android:label="@string/pg_details"
+        tools:layout="@layout/fragment_pg_details" />
+</navigation>

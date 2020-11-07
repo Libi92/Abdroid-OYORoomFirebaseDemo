@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "700564444401",
+    "firebase_url": "https://pg-locator-2c3d9.firebaseio.com",
+    "project_id": "pg-locator-2c3d9",
+    "storage_bucket": "pg-locator-2c3d9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:700564444401:android:795206fede098aa491c550",
+        "android_client_info": {
+          "package_name": "com.application.pglocator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "700564444401-f7b52ulok0ehgqlrcdh6ropqk1bqssp9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.application.pglocator",
+            "certificate_hash": "c5e32d34df39cec21dc67f591349e9fe2ac0ae12"
+          }
+        },
+        {
+          "client_id": "700564444401-gjpk8rcq7qhq5lshjq7p57hdb4n07qrh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2EV5WY8H55sRAwBN0_KX8keKKDPHUSsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "700564444401-gjpk8rcq7qhq5lshjq7p57hdb4n07qrh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
