@@ -36,4 +36,7 @@
     <string name="menu_slideshow">Slideshow</string>
     <string name="request">Request</string>
     <string name="add_feedback">Add Feedback</string>
+    <string name="request_details">Request Details</string>
+    <string name="accept">Accept</string>
+    <string name="reject">Reject</string>
 </resources>

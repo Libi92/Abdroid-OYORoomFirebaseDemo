@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.application.pglocator.R;
+import com.application.pglocator.constants.RequestAction;
 import com.application.pglocator.constants.UserType;
 import com.application.pglocator.db.DatabaseManager;
 import com.application.pglocator.db.UserListener;
@@ -96,9 +97,9 @@ public class PGDetailsFragment extends Fragment implements UserListener {
                         PGRequest pgRequest = new PGRequest();
                         pgRequest.setPgUid(pgRoom.getUId());
                         pgRequest.setRequestUserId(Globals.user.getUId());
-                        pgRequest.setRequestTime(Calendar.getInstance().getTime());
+                        pgRequest.setRequestTime(Calendar.getInstance().getTime().getTime());
                         pgRequest.setTargetUserId(pgRoom.getUserId());
-                        pgRequest.setStatus("PENDING");
+                        pgRequest.setStatus(RequestAction.Pending.getValue());
                         databaseManager.createRequest(pgRequest);
 
                         Toast.makeText(getContext(), "Request sent", Toast.LENGTH_SHORT).show();

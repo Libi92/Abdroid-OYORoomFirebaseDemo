@@ -22,6 +22,8 @@ import com.application.pglocator.util.Globals;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
+import java.util.Arrays;
+
 public class PGHomeActivity extends AppCompatActivity {
 
     public static final String ARG_USER = "user";
@@ -67,6 +69,18 @@ public class PGHomeActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
 
         initHeader(navigationView);
+
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            if (Arrays.asList(
+                    R.id.nav_request_details,
+                    R.id.nav_pgdetails,
+                    R.id.nav_requests
+            ).contains(destination.getId())) {
+                fab.setVisibility(View.GONE);
+            } else {
+                fab.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     public Fragment getForegroundFragment() {

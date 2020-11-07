@@ -55,7 +55,7 @@ public class AddFeedbackFragment extends BottomSheetDialogFragment {
             Feedback feedback = new Feedback();
             feedback.setTitle(editTextTitle.getText().toString());
             feedback.setDescription(editTextDescription.getText().toString());
-            feedback.setFeedbackTime(Calendar.getInstance().getTime());
+            feedback.setFeedbackTime(Calendar.getInstance().getTime().getTime());
             feedback.setUserId(Globals.user.getUId());
 
             databaseManager.createFeedback(feedback);

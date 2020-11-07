@@ -17,8 +17,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 public class DatabaseManager {
@@ -38,6 +38,7 @@ public class DatabaseManager {
     private UserListener userListener;
     private PGListener pgListener;
     private PGRequestListener requestListener;
+    private FeedbackListener feedbackListener;
 
     public DatabaseManager() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -97,12 +98,14 @@ public class DatabaseManager {
                 if (pgListener != null) {
                     HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
                     if (snapshotValue != null) {
-                        Collection<HashMap> values = snapshotValue.values();
+                        Set<String> keySet = snapshotValue.keySet();
                         ArrayList<PGRoom> pgRooms = new ArrayList<>();
-                        for (HashMap map : values) {
+                        for (String key : keySet) {
+                            HashMap map = snapshotValue.get(key);
                             Gson gson = new Gson();
                             JsonElement jsonElement = gson.toJsonTree(map);
                             PGRoom pgRoom = gson.fromJson(jsonElement, PGRoom.class);
+                            pgRoom.setUId(key);
                             pgRooms.add(pgRoom);
                         }
                         pgListener.onGetPG(pgRooms);
@@ -151,15 +154,17 @@ public class DatabaseManager {
                 if (requestListener != null) {
                     HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
                     if (snapshotValue != null) {
-                        Collection<HashMap> values = snapshotValue.values();
                         ArrayList<PGRequest> pgRequests = new ArrayList<>();
-                        for (HashMap map : values) {
+                        Set<String> keySet = snapshotValue.keySet();
+                        for (String key : keySet) {
+                            HashMap map = snapshotValue.get(key);
                             Gson gson = new Gson();
                             JsonElement jsonElement = gson.toJsonTree(map);
                             PGRequest request = gson.fromJson(jsonElement, PGRequest.class);
+                            request.setUId(key);
                             pgRequests.add(request);
                         }
-                        requestListener.onGetPGRequest(pgRequests);
+                        mapRequestPGRoom(pgRequests);
                     }
                 } else {
                     Log.e(TAG, "onDataChange: pgListener null");
@@ -181,6 +186,145 @@ public class DatabaseManager {
         }
     }
 
+    private void mapRequestPGRoom(ArrayList<PGRequest> pgRequests) {
+
+        pgDbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
+                if (snapshotValue != null) {
+                    Set<String> keySet = snapshotValue.keySet();
+
+                    for (PGRequest request : pgRequests) {
+                        for (String key : keySet) {
+                            HashMap map = snapshotValue.get(key);
+                            Gson gson = new Gson();
+                            JsonElement jsonElement = gson.toJsonTree(map);
+                            PGRoom pgRoom = gson.fromJson(jsonElement, PGRoom.class);
+                            pgRoom.setUId(key);
+
+                            if (request.getPgUid().equals(pgRoom.getUId())) {
+                                request.setPgRoom(pgRoom);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                mapRequestUser(pgRequests);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "onCancelled: " + error.getDetails());
+            }
+        });
+
+    }
+
+    private void mapRequestUser(ArrayList<PGRequest> pgRequests) {
+        userDbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
+                if (snapshotValue != null) {
+                    Set<String> keySet = snapshotValue.keySet();
+
+                    for (PGRequest request : pgRequests) {
+                        for (String key : keySet) {
+                            HashMap map = snapshotValue.get(key);
+                            Gson gson = new Gson();
+                            JsonElement jsonElement = gson.toJsonTree(map);
+                            User user = gson.fromJson(jsonElement, User.class);
+
+                            if (request.getRequestUserId().equals(user.getUId())) {
+                                request.setRequestedUser(user);
+                            }
+
+                            if (request.getTargetUserId().equals(user.getUId())) {
+                                request.setTargetUser(user);
+                            }
+                        }
+                    }
+                }
+
+                requestListener.onGetPGRequest(pgRequests);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    public void acceptRejectRequests(PGRequest request, String status) {
+        requestsDbReference.child(request.getUId()).child("status").setValue(status);
+    }
+
+    public void getFeedback() {
+        feedbackDbReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (feedbackDbReference != null) {
+                    HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
+                    if (snapshotValue != null) {
+                        Set<String> keySet = snapshotValue.keySet();
+                        ArrayList<Feedback> feedbacks = new ArrayList<>();
+                        for (String key : keySet) {
+                            HashMap map = snapshotValue.get(key);
+                            Gson gson = new Gson();
+                            JsonElement jsonElement = gson.toJsonTree(map);
+                            Feedback feedback = gson.fromJson(jsonElement, Feedback.class);
+                            feedback.setUId(key);
+                            feedbacks.add(feedback);
+                        }
+
+                        mapFeedbackUser(feedbacks);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void mapFeedbackUser(ArrayList<Feedback> feedbacks) {
+        userDbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
+                if (snapshotValue != null) {
+                    Set<String> keySet = snapshotValue.keySet();
+
+                    for (Feedback feedback : feedbacks) {
+                        for (String key : keySet) {
+                            HashMap map = snapshotValue.get(key);
+                            Gson gson = new Gson();
+                            JsonElement jsonElement = gson.toJsonTree(map);
+                            User user = gson.fromJson(jsonElement, User.class);
+
+                            if (feedback.getUserId().equals(user.getUId())) {
+                                feedback.setUser(user);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                feedbackListener.onFeedback(feedbacks);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
     public static class Builder {
         private final DatabaseManager databaseManager;
 
@@ -200,6 +344,11 @@ public class DatabaseManager {
 
         public Builder requestListener(PGRequestListener requestListener) {
             databaseManager.requestListener = requestListener;
+            return this;
+        }
+
+        public Builder feedbackListener(FeedbackListener feedbackListener) {
+            databaseManager.feedbackListener = feedbackListener;
             return this;
         }
 

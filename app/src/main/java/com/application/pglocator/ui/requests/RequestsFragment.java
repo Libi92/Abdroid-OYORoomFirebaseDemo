@@ -7,10 +7,13 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.application.pglocator.R;
+import com.application.pglocator.adapter.PGRequestAdapter;
 import com.application.pglocator.constants.UserType;
 import com.application.pglocator.db.DatabaseManager;
 import com.application.pglocator.db.PGRequestListener;
@@ -19,7 +22,7 @@ import com.application.pglocator.util.Globals;
 
 import java.util.List;
 
-public class RequestsFragment extends Fragment implements PGRequestListener {
+public class RequestsFragment extends Fragment implements PGRequestListener, PGRequestAdapter.RequestClickListener {
 
     private RecyclerView recyclerViewRequests;
 
@@ -53,6 +56,16 @@ public class RequestsFragment extends Fragment implements PGRequestListener {
 
     @Override
     public void onGetPGRequest(List<PGRequest> requests) {
+        PGRequestAdapter adapter = new PGRequestAdapter(requests);
+        adapter.setRequestClickListener(this);
+        recyclerViewRequests.setAdapter(adapter);
+    }
 
+    @Override
+    public void onClick(PGRequest request) {
+        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(RequestDetailsFragment.ARG_REQUEST, request);
+        navController.navigate(R.id.action_nav_request_to_details, bundle);
     }
 }
