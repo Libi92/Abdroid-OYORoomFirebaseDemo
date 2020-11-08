@@ -15,4 +15,5 @@ public class PGRoom implements Serializable {
     private int maxPeople;
     private float rent;
     private List<String> images;
+    private List<Feedback> feedbackList;
 }

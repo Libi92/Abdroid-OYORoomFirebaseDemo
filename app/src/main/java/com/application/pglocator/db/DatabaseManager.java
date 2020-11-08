@@ -110,7 +110,8 @@ public class DatabaseManager {
                             pgRoom.setUId(key);
                             pgRooms.add(pgRoom);
                         }
-                        pgListener.onGetPG(pgRooms);
+
+                        mapPGFeedbackUser(pgRooms);
                     }
                 } else {
                     Log.e(TAG, "onDataChange: pgListener null");
@@ -129,6 +130,44 @@ public class DatabaseManager {
         } else {
             pgDbReference.addValueEventListener(valueEventListener);
         }
+    }
+
+    private void mapPGFeedbackUser(List<PGRoom> pgRooms) {
+        userDbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
+                if (snapshotValue != null) {
+                    Set<String> keySet = snapshotValue.keySet();
+
+                    for (PGRoom pgRoom : pgRooms) {
+                        List<Feedback> feedbackList = pgRoom.getFeedbackList();
+                        if (feedbackList != null) {
+                            for (Feedback feedback : feedbackList) {
+                                for (String key : keySet) {
+                                    HashMap map = snapshotValue.get(key);
+                                    Gson gson = new Gson();
+                                    JsonElement jsonElement = gson.toJsonTree(map);
+                                    User user = gson.fromJson(jsonElement, User.class);
+                                    user.setUId(key);
+
+                                    if (feedback.getUserId().equals(user.getUId())) {
+                                        feedback.setUser(user);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                pgListener.onGetPG(pgRooms);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     public void createRequest(PGRequest pgRequest) {
@@ -353,6 +392,10 @@ public class DatabaseManager {
                         Log.e(TAG, "onCancelled: " + error.getDetails());
                     }
                 });
+    }
+
+    public void addPGFeedback(PGRoom pgRoom) {
+        pgDbReference.child(pgRoom.getUId()).child("feedbackList").setValue(pgRoom.getFeedbackList());
     }
 
     public void deleteUser(User user) {

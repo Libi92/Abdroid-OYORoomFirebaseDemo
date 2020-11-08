@@ -9,18 +9,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.application.pglocator.R;
+import com.application.pglocator.adapter.FeedbackAdapter;
 import com.application.pglocator.constants.RequestAction;
 import com.application.pglocator.constants.UserType;
 import com.application.pglocator.db.DatabaseManager;
 import com.application.pglocator.db.UserListener;
+import com.application.pglocator.model.Feedback;
 import com.application.pglocator.model.PGRequest;
 import com.application.pglocator.model.PGRoom;
 import com.application.pglocator.model.User;
@@ -28,6 +33,7 @@ import com.application.pglocator.util.Globals;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -41,6 +47,11 @@ public class PGDetailsFragment extends Fragment implements UserListener {
     private DatabaseManager databaseManager;
     private View view;
     private Button buttonRequest;
+    private Button buttonSendFeedback;
+    private RecyclerView recyclerViewFeebacks;
+    private EditText editTextPGFeedback;
+    private List<Feedback> pgFeedbacks;
+    private FeedbackAdapter feedbackAdapter;
 
     @Nullable
     @Override
@@ -84,9 +95,27 @@ public class PGDetailsFragment extends Fragment implements UserListener {
         buttonRequest = view.findViewById(R.id.buttonRequest);
 
         setImages(pgRoom);
+
+        editTextPGFeedback = view.findViewById(R.id.editTextPGFeedback);
+        buttonSendFeedback = view.findViewById(R.id.buttonSend);
+        recyclerViewFeebacks = view.findViewById(R.id.recyclerViewPGFeedback);
+        recyclerViewFeebacks.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        setFeedback();
+
         User user = new User();
         user.setUId(pgRoom.getUserId());
         databaseManager.getUser(user);
+    }
+
+    private void setFeedback() {
+        pgFeedbacks = pgRoom.getFeedbackList();
+        if (pgFeedbacks == null) {
+            pgFeedbacks = new ArrayList<>();
+        }
+
+        feedbackAdapter = new FeedbackAdapter(pgFeedbacks);
+        recyclerViewFeebacks.setAdapter(feedbackAdapter);
     }
 
     private void initListeners() {
@@ -111,6 +140,29 @@ public class PGDetailsFragment extends Fragment implements UserListener {
         });
 
         buttonRequest.setVisibility(View.GONE);
+
+        buttonSendFeedback.setOnClickListener(v -> {
+            String feedback = editTextPGFeedback.getText().toString();
+            Feedback pgFeedback = new Feedback();
+            pgFeedback.setDescription(feedback);
+            pgFeedback.setFeedbackTime(Calendar.getInstance().getTime().getTime());
+            pgFeedback.setUserId(Globals.user.getUId());
+
+            if (pgRoom.getFeedbackList() == null) {
+
+                pgRoom.setFeedbackList(new ArrayList<>());
+            }
+            pgRoom.getFeedbackList().add(pgFeedback);
+
+            databaseManager.addPGFeedback(pgRoom);
+
+//            pgFeedback.setUser(Globals.user);
+            pgFeedbacks.add(pgFeedback);
+            feedbackAdapter.notifyDataSetChanged();
+
+            editTextPGFeedback.setText("");
+            Toast.makeText(requireContext(), "Feedback added", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void setImages(PGRoom pgRoom) {

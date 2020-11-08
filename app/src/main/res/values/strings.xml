@@ -40,4 +40,6 @@
     <string name="request_details">Request Details</string>
     <string name="accept">Accept</string>
     <string name="reject">Reject</string>
+    <string name="add_your_feedback">Add your feedback</string>
+    <string name="user_feedbacks">User Feedbacks</string>
 </resources>
