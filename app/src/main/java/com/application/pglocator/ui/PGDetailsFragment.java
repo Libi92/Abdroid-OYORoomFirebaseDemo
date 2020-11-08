@@ -29,6 +29,7 @@ import com.application.pglocator.util.Globals;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Calendar;
+import java.util.List;
 
 import pereira.agnaldo.previewimgcol.ImageCollectionView;
 
@@ -131,6 +132,11 @@ public class PGDetailsFragment extends Fragment implements UserListener {
         if (Globals.user.getUserType().equals(UserType.USER.getValue())) {
             buttonRequest.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onListUser(List<User> users) {
+
     }
 
     class ImageLoadTask extends AsyncTask<String, Integer, Bitmap> {

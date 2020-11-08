@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.application.pglocator.auth.AuthManager;
+import com.application.pglocator.constants.UserState;
 import com.application.pglocator.model.User;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -55,6 +56,7 @@ public class RegisterActivity extends AppCompatActivity {
             user.setUserType(spinnerUserType.getSelectedItem().toString());
             user.setPhone(editTextPhone.getText().toString());
             user.setAddress(editTextAddress.getText().toString());
+            user.setStatus(UserState.ACTIVE.getValue());
 
             authManager.createUser(user);
             Toast.makeText(this, "Registration Complete", Toast.LENGTH_SHORT).show();

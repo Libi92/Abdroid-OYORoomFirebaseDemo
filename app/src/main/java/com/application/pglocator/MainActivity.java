@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.application.pglocator.adapter.PGAdapter;
 import com.application.pglocator.auth.AuthListener;
 import com.application.pglocator.auth.AuthManager;
-import com.application.pglocator.constants.UserType;
 import com.application.pglocator.db.DatabaseManager;
 import com.application.pglocator.db.PGListener;
 import com.application.pglocator.db.UserListener;
@@ -95,14 +94,9 @@ public class MainActivity extends AppCompatActivity implements AuthListener, Use
     private void initListeners() {
         floatingActionButton.setOnClickListener(v -> {
             if (userModel != null) {
-                if (userModel.getUserType().equals(UserType.PG.getValue()) ||
-                        userModel.getUserType().equals(UserType.USER.getValue())) {
-                    Intent intent = new Intent(this, PGHomeActivity.class);
-                    intent.putExtra(PGHomeActivity.ARG_USER, userModel);
-                    startActivity(intent);
-                } else {
-                    showSnackbar(userModel.getUserType());
-                }
+                Intent intent = new Intent(this, PGHomeActivity.class);
+                intent.putExtra(PGHomeActivity.ARG_USER, userModel);
+                startActivity(intent);
             }
         });
     }
@@ -195,6 +189,11 @@ public class MainActivity extends AppCompatActivity implements AuthListener, Use
             showSnackbar(String.format("Welcome %s", user.getDisplayName()));
             floatingActionButton.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onListUser(List<User> users) {
+
     }
 
     @Override

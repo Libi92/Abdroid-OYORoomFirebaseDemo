@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.application.pglocator.constants.UserState;
 import com.application.pglocator.model.Feedback;
 import com.application.pglocator.model.PGRequest;
 import com.application.pglocator.model.PGRoom;
@@ -18,6 +19,7 @@ import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -323,6 +325,38 @@ public class DatabaseManager {
 
             }
         });
+    }
+
+    public void getUsers() {
+        userDbReference.orderByChild("Status").equalTo(UserState.ACTIVE.getValue())
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
+                        if (snapshotValue != null) {
+                            Set<String> keySet = snapshotValue.keySet();
+                            List<User> userList = new ArrayList<>();
+                            for (String key : keySet) {
+                                HashMap map = snapshotValue.get(key);
+                                Gson gson = new Gson();
+                                JsonElement jsonElement = gson.toJsonTree(map);
+                                User user = gson.fromJson(jsonElement, User.class);
+                                user.setUId(key);
+                                userList.add(user);
+                            }
+                            userListener.onListUser(userList);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e(TAG, "onCancelled: " + error.getDetails());
+                    }
+                });
+    }
+
+    public void deleteUser(User user) {
+        userDbReference.child(user.getUId()).child("Status").setValue(UserState.DELETED.getValue());
     }
 
     public static class Builder {

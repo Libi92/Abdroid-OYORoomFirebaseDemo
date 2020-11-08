@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.application.pglocator.db.DatabaseManager;
+import com.application.pglocator.db.UserListener;
 import com.application.pglocator.model.User;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
@@ -25,11 +26,19 @@ public class AuthManager {
 
     public AuthManager() {
         databaseManager = new DatabaseManager.Builder()
-                .userListener(user -> {
-                    if (user.isRegistered()) {
-                        authListener.onLoginSuccess(user);
-                    } else {
-                        authListener.registerUser(user);
+                .userListener(new UserListener() {
+                    @Override
+                    public void onGetUser(User user) {
+                        if (user.isRegistered()) {
+                            authListener.onLoginSuccess(user);
+                        } else {
+                            authListener.registerUser(user);
+                        }
+                    }
+
+                    @Override
+                    public void onListUser(List<User> users) {
+
                     }
                 })
                 .build();
