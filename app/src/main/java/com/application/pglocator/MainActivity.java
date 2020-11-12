@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.application.pglocator.adapter.PGAdapter;
 import com.application.pglocator.auth.AuthListener;
 import com.application.pglocator.auth.AuthManager;
+import com.application.pglocator.constants.UserState;
 import com.application.pglocator.db.DatabaseManager;
 import com.application.pglocator.db.PGListener;
 import com.application.pglocator.db.UserListener;
@@ -185,6 +186,13 @@ public class MainActivity extends AppCompatActivity implements AuthListener, Use
             }
             showRegisterMenu(true);
         } else {
+            String status = user.getStatus();
+            if (status != null && status.equals(UserState.DELETED.getValue())) {
+                showSnackbar("User account deleted");
+                authManager.doLogout();
+                Globals.user = null;
+                return;
+            }
             showRegisterMenu(false);
             showSnackbar(String.format("Welcome %s", user.getDisplayName()));
             floatingActionButton.setVisibility(View.VISIBLE);

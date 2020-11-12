@@ -67,6 +67,13 @@ public class DatabaseManager {
                         user.setDisplayName(snapshot.child("displayName").getValue(String.class));
                         user.setEmail(snapshot.child("email").getValue(String.class));
                         user.setPhone(snapshot.child("phone").getValue(String.class));
+                        String status = snapshot.child("status").getValue(String.class);
+                        if (status != null) {
+                            user.setStatus(status);
+                        } else {
+                            user.setStatus(snapshot.child("Status").getValue(String.class));
+                        }
+
                         user.setRegistered(true);
                     } else {
                         user.setRegistered(false);
@@ -277,6 +284,7 @@ public class DatabaseManager {
                             Gson gson = new Gson();
                             JsonElement jsonElement = gson.toJsonTree(map);
                             User user = gson.fromJson(jsonElement, User.class);
+                            user.setUId(key);
 
                             if (request.getRequestUserId().equals(user.getUId())) {
                                 request.setRequestedUser(user);
@@ -347,6 +355,7 @@ public class DatabaseManager {
                             Gson gson = new Gson();
                             JsonElement jsonElement = gson.toJsonTree(map);
                             User user = gson.fromJson(jsonElement, User.class);
+                            user.setUId(key);
 
                             if (feedback.getUserId().equals(user.getUId())) {
                                 feedback.setUser(user);
@@ -367,31 +376,34 @@ public class DatabaseManager {
     }
 
     public void getUsers() {
-        userDbReference.orderByChild("Status").equalTo(UserState.ACTIVE.getValue())
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
-                        if (snapshotValue != null) {
-                            Set<String> keySet = snapshotValue.keySet();
-                            List<User> userList = new ArrayList<>();
-                            for (String key : keySet) {
-                                HashMap map = snapshotValue.get(key);
-                                Gson gson = new Gson();
-                                JsonElement jsonElement = gson.toJsonTree(map);
-                                User user = gson.fromJson(jsonElement, User.class);
-                                user.setUId(key);
-                                userList.add(user);
-                            }
-                            userListener.onListUser(userList);
-                        }
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                HashMap<String, HashMap> snapshotValue = (HashMap<String, HashMap>) snapshot.getValue();
+                if (snapshotValue != null) {
+                    Set<String> keySet = snapshotValue.keySet();
+                    List<User> userList = new ArrayList<>();
+                    for (String key : keySet) {
+                        HashMap map = snapshotValue.get(key);
+                        Gson gson = new Gson();
+                        JsonElement jsonElement = gson.toJsonTree(map);
+                        User user = gson.fromJson(jsonElement, User.class);
+                        user.setUId(key);
+                        userList.add(user);
                     }
+                    userListener.onListUser(userList);
+                }
+            }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Log.e(TAG, "onCancelled: " + error.getDetails());
-                    }
-                });
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "onCancelled: " + error.getDetails());
+            }
+        };
+        userDbReference.orderByChild("Status").equalTo(UserState.ACTIVE.getValue())
+                .addValueEventListener(valueEventListener);
+        userDbReference.orderByChild("status").equalTo(UserState.ACTIVE.getValue())
+                .addValueEventListener(valueEventListener);
     }
 
     public void addPGFeedback(PGRoom pgRoom) {

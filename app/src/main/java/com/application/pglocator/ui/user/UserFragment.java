@@ -18,14 +18,16 @@ import com.application.pglocator.db.DatabaseManager;
 import com.application.pglocator.db.UserListener;
 import com.application.pglocator.model.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.sulek.ssml.SSMLLinearLayoutManager;
 
 public class UserFragment extends Fragment implements UserListener, UserAdapter.OnUserItemListener {
 
-    private RecyclerView recyclerViewUsers;
     private DatabaseManager databaseManager;
+    private UserAdapter userAdapter;
+    private List<User> users;
 
     @Nullable
     @Override
@@ -45,8 +47,13 @@ public class UserFragment extends Fragment implements UserListener, UserAdapter.
     }
 
     private void initView(View view) {
-        recyclerViewUsers = view.findViewById(R.id.recyclerViewUsers);
+        RecyclerView recyclerViewUsers = view.findViewById(R.id.recyclerViewUsers);
         recyclerViewUsers.setLayoutManager(new SSMLLinearLayoutManager(requireContext()));
+
+        users = new ArrayList<>();
+        userAdapter = new UserAdapter(users);
+        userAdapter.setOnUserItemListener(this);
+        recyclerViewUsers.setAdapter(userAdapter);
     }
 
     @Override
@@ -56,9 +63,8 @@ public class UserFragment extends Fragment implements UserListener, UserAdapter.
 
     @Override
     public void onListUser(List<User> users) {
-        UserAdapter userAdapter = new UserAdapter(users);
-        userAdapter.setOnUserItemListener(this);
-        recyclerViewUsers.setAdapter(userAdapter);
+        this.users.addAll(users);
+        userAdapter.notifyDataSetChanged();
     }
 
     @Override
