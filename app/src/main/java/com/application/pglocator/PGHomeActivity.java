@@ -1,7 +1,6 @@
 package com.application.pglocator;
 
 import android.os.Bundle;
-import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 
@@ -85,11 +84,17 @@ public class PGHomeActivity extends AppCompatActivity {
             if (Arrays.asList(
                     R.id.nav_request_details,
                     R.id.nav_pgdetails,
-                    R.id.nav_requests
+                    R.id.nav_requests,
+                    R.id.nav_payment
             ).contains(destination.getId())) {
                 fab.setVisibility(View.GONE);
             } else {
-                fab.setVisibility(View.VISIBLE);
+                if (destination.getId() == R.id.nav_home &&
+                        !Globals.user.getUserType().equals(UserType.PG.getValue())) {
+                    fab.setVisibility(View.GONE);
+                } else {
+                    fab.setVisibility(View.VISIBLE);
+                }
             }
         });
     }
@@ -105,13 +110,6 @@ public class PGHomeActivity extends AppCompatActivity {
         textViewName.setText(Globals.user.getDisplayName());
         TextView textViewEmail = headerView.findViewById(R.id.textViewEmail);
         textViewEmail.setText(Globals.user.getEmail());
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.pghome, menu);
-        return true;
     }
 
     @Override

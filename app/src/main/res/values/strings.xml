@@ -42,4 +42,5 @@
     <string name="reject">Reject</string>
     <string name="add_your_feedback">Add your feedback</string>
     <string name="user_feedbacks">User Feedbacks</string>
+    <string name="location">Location</string>
 </resources>

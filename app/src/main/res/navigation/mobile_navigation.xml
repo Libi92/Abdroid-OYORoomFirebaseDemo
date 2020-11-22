@@ -46,5 +46,14 @@
         android:id="@+id/nav_request_details"
         android:name="com.application.pglocator.ui.requests.RequestDetailsFragment"
         android:label="@string/request_details"
-        tools:layout="@layout/fragment_request_details" />
+        tools:layout="@layout/fragment_request_details" >
+        <action
+            android:id="@+id/action_nav_request_details_to_paymentFragment"
+            app:destination="@id/nav_payment" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_payment"
+        android:name="com.application.pglocator.ui.requests.PaymentFragment"
+        android:label="Payment"
+        tools:layout="@layout/fragment_payment" />
 </navigation>

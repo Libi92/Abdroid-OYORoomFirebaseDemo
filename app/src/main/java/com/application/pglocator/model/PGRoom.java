@@ -11,6 +11,7 @@ public class PGRoom implements Serializable {
     private String userId;
     private String title;
     private String description;
+    private String location;
     private String address;
     private int maxPeople;
     private float rent;

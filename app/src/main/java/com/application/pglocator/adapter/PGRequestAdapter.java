@@ -60,11 +60,12 @@ public class PGRequestAdapter extends RecyclerView.Adapter<PGRequestAdapter.PGRe
 
             List<String> images = pgRoom.getImages();
             if (images != null && !images.isEmpty()) {
-                Glide.with(holder.imageViewPG.getContext()).load(images.get(0)).into(holder.imageViewPG);
+                Glide.with(holder.imageViewPG.getContext()).load(images.get(0))
+                        .placeholder(R.mipmap.home).into(holder.imageViewPG);
             }
 
             if (!request.getStatus().equals(RequestAction.Pending.getValue())) {
-                holder.textViewStatus.setText(request.getStatus());
+                holder.textViewStatus.setText(String.format("%sED", request.getStatus()));
                 holder.textViewStatus.setVisibility(View.VISIBLE);
             } else {
                 holder.textViewStatus.setVisibility(View.GONE);

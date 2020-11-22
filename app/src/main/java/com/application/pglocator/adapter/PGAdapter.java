@@ -48,7 +48,8 @@ public class PGAdapter extends RecyclerView.Adapter<PGAdapter.PGViewHolder> {
         holder.textViewRent.setText(String.format("Rs. %s (per month)", pgRoom.getRent()));
         List<String> images = pgRoom.getImages();
         if (images != null && !images.isEmpty()) {
-            Glide.with(holder.imageViewPG.getContext()).load(images.get(0)).into(holder.imageViewPG);
+            Glide.with(holder.imageViewPG.getContext()).load(images.get(0))
+                    .placeholder(R.mipmap.home).into(holder.imageViewPG);
         }
 
         holder.itemView.setOnClickListener(v -> {

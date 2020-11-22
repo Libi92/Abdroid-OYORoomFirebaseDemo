@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,17 +20,22 @@ import com.application.pglocator.constants.UserState;
 import com.application.pglocator.db.DatabaseManager;
 import com.application.pglocator.db.PGListener;
 import com.application.pglocator.db.UserListener;
+import com.application.pglocator.dialog.SearchDialog;
 import com.application.pglocator.model.PGRoom;
 import com.application.pglocator.model.User;
 import com.application.pglocator.util.Globals;
+import com.application.pglocator.widget.SearchView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AuthListener, UserListener, PGListener, PGAdapter.PGClickListener {
+public class MainActivity extends AppCompatActivity implements AuthListener, UserListener,
+        PGListener, PGAdapter.PGClickListener, SearchDialog.OnSearchListener {
 
     private static final int RC_SIGN_IN = 1009;
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -41,6 +47,11 @@ public class MainActivity extends AppCompatActivity implements AuthListener, Use
     private FloatingActionButton floatingActionButton;
     private RecyclerView recyclerViewPG;
     private boolean registerChecked;
+    private SearchView searchView;
+    private ProgressBar progressBar;
+    private List<PGRoom> rooms;
+    private List<PGRoom> adapterItems;
+    private PGAdapter pgAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,10 +96,13 @@ public class MainActivity extends AppCompatActivity implements AuthListener, Use
     }
 
     private void initLayout() {
+        searchView = findViewById(R.id.searchView);
         floatingActionButton = findViewById(R.id.floatingActionButton);
         recyclerViewPG = findViewById(R.id.recyclerViewPG);
         recyclerViewPG.setLayoutManager(new LinearLayoutManager(this));
 
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
         databaseManager.getPG(null);
     }
 
@@ -99,6 +113,21 @@ public class MainActivity extends AppCompatActivity implements AuthListener, Use
                 intent.putExtra(PGHomeActivity.ARG_USER, userModel);
                 startActivity(intent);
             }
+        });
+
+        searchView.setOnClickListener(v -> {
+            SearchDialog searchDialog = new SearchDialog();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable(SearchDialog.ARG_ROOMS, (Serializable) rooms);
+            searchDialog.setArguments(bundle);
+            searchDialog.setOnSearchListener(this);
+            searchDialog.show(getSupportFragmentManager(), TAG);
+        });
+
+        searchView.setOnClearListener(() -> {
+            adapterItems.clear();
+            adapterItems.addAll(rooms);
+            pgAdapter.notifyDataSetChanged();
         });
     }
 
@@ -206,12 +235,25 @@ public class MainActivity extends AppCompatActivity implements AuthListener, Use
 
     @Override
     public void onGetPG(List<PGRoom> rooms) {
-        PGAdapter pgAdapter = new PGAdapter(rooms);
+        this.rooms = rooms;
+        this.adapterItems = new ArrayList<>(rooms);
+        progressBar.setVisibility(View.GONE);
+        searchView.setVisibility(View.VISIBLE);
+        pgAdapter = new PGAdapter(adapterItems);
         recyclerViewPG.setAdapter(pgAdapter);
     }
 
     @Override
     public void onPGItemClick(PGRoom pgRoom) {
 
+    }
+
+    @Override
+    public void onSearch(List<PGRoom> pgRooms, List<String> filterItems) {
+        this.adapterItems.clear();
+        this.adapterItems.addAll(pgRooms);
+        this.pgAdapter.notifyDataSetChanged();
+
+        searchView.addItems(filterItems);
     }
 }

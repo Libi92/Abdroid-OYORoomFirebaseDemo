@@ -1,8 +1,12 @@
 package com.application.pglocator.ui;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,6 +35,7 @@ import com.application.pglocator.model.PGRequest;
 import com.application.pglocator.model.PGRoom;
 import com.application.pglocator.model.User;
 import com.application.pglocator.util.Globals;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
 import java.net.URL;
@@ -41,6 +47,7 @@ import pereira.agnaldo.previewimgcol.ImageCollectionView;
 
 public class PGDetailsFragment extends Fragment implements UserListener {
     public static final String ARG_PGROOM = "PG::Room";
+    private static final int REQUEST_CODE = 1992;
     private PGRoom pgRoom;
 
     private ImageCollectionView imageCollectionView;
@@ -52,6 +59,7 @@ public class PGDetailsFragment extends Fragment implements UserListener {
     private EditText editTextPGFeedback;
     private List<Feedback> pgFeedbacks;
     private FeedbackAdapter feedbackAdapter;
+    private String phone;
 
     @Nullable
     @Override
@@ -85,12 +93,16 @@ public class PGDetailsFragment extends Fragment implements UserListener {
         TextView textViewDescription = view.findViewById(R.id.textViewDescription);
         TextView textViewAddress = view.findViewById(R.id.textViewAddress);
         TextView textViewRent = view.findViewById(R.id.textViewRent);
+        TextView textViewLocation = view.findViewById(R.id.textViewLocation);
+        TextView textViewMaxAllowed = view.findViewById(R.id.textViewMaxAllowed);
 
 
         textViewTitle.setText(pgRoom.getTitle());
         textViewDescription.setText(pgRoom.getDescription());
         textViewAddress.setText(pgRoom.getAddress());
         textViewRent.setText(String.format("Rs. %s (per month)", pgRoom.getRent()));
+        textViewLocation.setText(pgRoom.getLocation());
+        textViewMaxAllowed.setText(String.valueOf(pgRoom.getMaxPeople()));
 
         buttonRequest = view.findViewById(R.id.buttonRequest);
 
@@ -101,6 +113,10 @@ public class PGDetailsFragment extends Fragment implements UserListener {
         recyclerViewFeebacks = view.findViewById(R.id.recyclerViewPGFeedback);
         recyclerViewFeebacks.setLayoutManager(new LinearLayoutManager(requireContext()));
 
+        if (Globals.user.getUserType().equals(UserType.PG.getValue())) {
+            editTextPGFeedback.setVisibility(View.GONE);
+            buttonSendFeedback.setVisibility(View.GONE);
+        }
         setFeedback();
 
         User user = new User();
@@ -156,7 +172,6 @@ public class PGDetailsFragment extends Fragment implements UserListener {
 
             databaseManager.addPGFeedback(pgRoom);
 
-//            pgFeedback.setUser(Globals.user);
             pgFeedbacks.add(pgFeedback);
             feedbackAdapter.notifyDataSetChanged();
 
@@ -179,10 +194,65 @@ public class PGDetailsFragment extends Fragment implements UserListener {
         TextView textViewPhone = view.findViewById(R.id.textViewPhone);
 
         textViewName.setText(user.getDisplayName());
-        textViewPhone.setText(user.getPhone());
+        String phone = user.getPhone();
+
+        if (phone == null || phone.equals("")) {
+            textViewPhone.setText("not available");
+        } else {
+            textViewPhone.setText(phone);
+
+            textViewPhone.setOnClickListener(v ->
+                    checkCallPermission(phone)
+            );
+
+        }
+
 
         if (Globals.user.getUserType().equals(UserType.USER.getValue())) {
             buttonRequest.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void checkCallPermission(String phone) {
+
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CALL_PHONE)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            makeCall(phone);
+        } else {
+            this.phone = phone;
+            requestPermissions(new String[]{Manifest.permission.CALL_PHONE},
+                    REQUEST_CODE);
+        }
+
+    }
+
+    private void makeCall(String phone) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Call this PG")
+                .setMessage("Carrier charges will be applicable")
+                .setPositiveButton("Ok", (dialog, which) -> {
+                    String uri = "tel:" + phone;
+                    Intent intent = new Intent(Intent.ACTION_CALL);
+                    intent.setData(Uri.parse(uri));
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    dialog.dismiss();
+                }).create().show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        if (requestCode == REQUEST_CODE) {
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                makeCall(this.phone);
+            } else {
+                Snackbar.make(view, "Permission is required to make call",
+                        Snackbar.LENGTH_SHORT).show();
+            }
         }
     }
 

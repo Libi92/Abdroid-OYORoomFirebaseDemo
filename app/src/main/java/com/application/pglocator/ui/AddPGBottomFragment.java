@@ -48,6 +48,7 @@ public class AddPGBottomFragment extends BottomSheetDialogFragment {
     private EditText editTextAddress;
     private EditText editTextMaxPeople;
     private EditText editTextRent;
+    private EditText editTextLocation;
 
     private List<Image> images;
 
@@ -89,6 +90,7 @@ public class AddPGBottomFragment extends BottomSheetDialogFragment {
         editTextAddress = view.findViewById(R.id.editTextAddress);
         editTextMaxPeople = view.findViewById(R.id.editTextMaxPeople);
         editTextRent = view.findViewById(R.id.editTextRent);
+        editTextLocation = view.findViewById(R.id.editTextLocation);
     }
 
     private void initListeners() {
@@ -160,6 +162,7 @@ public class AddPGBottomFragment extends BottomSheetDialogFragment {
         PGRoom pgRoom = new PGRoom();
         pgRoom.setTitle(editTextTitle.getText().toString());
         pgRoom.setDescription(editTextDescription.getText().toString());
+        pgRoom.setLocation(editTextLocation.getText().toString());
         pgRoom.setAddress(editTextAddress.getText().toString());
         pgRoom.setMaxPeople(Integer.parseInt(editTextMaxPeople.getText().toString()));
         pgRoom.setRent(Float.parseFloat(editTextRent.getText().toString()));

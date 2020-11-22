@@ -119,6 +119,10 @@ public class DatabaseManager {
                         }
 
                         mapPGFeedbackUser(pgRooms);
+                    } else {
+                        if (pgListener != null) {
+                            pgListener.onGetPG(new ArrayList<>());
+                        }
                     }
                 } else {
                     Log.e(TAG, "onDataChange: pgListener null");
