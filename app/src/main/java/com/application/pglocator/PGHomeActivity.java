@@ -85,7 +85,8 @@ public class PGHomeActivity extends AppCompatActivity {
                     R.id.nav_request_details,
                     R.id.nav_pgdetails,
                     R.id.nav_requests,
-                    R.id.nav_payment
+                    R.id.nav_payment,
+                    R.id.nav_user
             ).contains(destination.getId())) {
                 fab.setVisibility(View.GONE);
             } else {
