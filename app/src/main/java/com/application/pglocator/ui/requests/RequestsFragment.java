@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -19,16 +20,19 @@ import com.application.pglocator.db.DatabaseManager;
 import com.application.pglocator.db.PGRequestListener;
 import com.application.pglocator.model.PGRequest;
 import com.application.pglocator.util.Globals;
+import com.application.pglocator.viewmodel.RequestsViewModel;
 
 import java.util.List;
 
 public class RequestsFragment extends Fragment implements PGRequestListener, PGRequestAdapter.RequestClickListener {
 
     private RecyclerView recyclerViewRequests;
+    private RequestsViewModel requestsViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
+        requestsViewModel = new ViewModelProvider(requireActivity()).get(RequestsViewModel.class);
         View root = inflater.inflate(R.layout.fragment_requests, container, false);
 
         init();
@@ -63,9 +67,8 @@ public class RequestsFragment extends Fragment implements PGRequestListener, PGR
 
     @Override
     public void onClick(PGRequest request) {
+        requestsViewModel.setData(request);
         NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(RequestDetailsFragment.ARG_REQUEST, request);
-        navController.navigate(R.id.action_nav_request_to_details, bundle);
+        navController.navigate(R.id.action_nav_request_to_details);
     }
 }

@@ -110,6 +110,17 @@ public class PGHomeActivity extends AppCompatActivity {
         textViewName.setText(Globals.user.getDisplayName());
         TextView textViewEmail = headerView.findViewById(R.id.textViewEmail);
         textViewEmail.setText(Globals.user.getEmail());
+        TextView textViewUserType = headerView.findViewById(R.id.textViewUserType);
+        String userType = "";
+        String type = Globals.user.getUserType();
+        if (UserType.USER.getValue().equalsIgnoreCase(type)) {
+            userType = "Standard User";
+        } else if (UserType.PG.getValue().equalsIgnoreCase(type)) {
+            userType = "PG User";
+        } else if (UserType.ADMIN.getValue().equalsIgnoreCase(type)) {
+            userType = "Admin User";
+        }
+        textViewUserType.setText(userType);
     }
 
     @Override

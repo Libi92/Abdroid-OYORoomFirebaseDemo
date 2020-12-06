@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
@@ -32,6 +35,7 @@ import com.application.pglocator.model.PGRoom;
 import com.application.pglocator.model.User;
 import com.application.pglocator.util.DateUtil;
 import com.application.pglocator.util.Globals;
+import com.application.pglocator.viewmodel.RequestsViewModel;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
@@ -39,12 +43,16 @@ import java.net.URL;
 
 import pereira.agnaldo.previewimgcol.ImageCollectionView;
 
-public class RequestDetailsFragment extends Fragment {
+public class RequestDetailsFragment extends Fragment implements LifecycleOwner {
 
     public static final String ARG_REQUEST = "arg::Request";
+    public static final String REQ_KEY = "req::Key";
+    public static final String DATA_KEY = "key::Payment";
+
     private static final int REQUEST_CODE = 1992;
     private PGRequest request;
     private DatabaseManager databaseManager;
+    private RequestsViewModel requestsViewModel;
 
     private ImageCollectionView imageCollectionView;
     private Button buttonAccept;
@@ -52,6 +60,20 @@ public class RequestDetailsFragment extends Fragment {
     private String phone;
     private View view;
     private Button buttonPay;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        getParentFragmentManager().setFragmentResultListener(REQ_KEY, this,
+                (requestKey, result) -> {
+                    databaseManager.acceptRejectRequests(request, RequestAction.Pay.getValue());
+
+                    if (requestsViewModel != null) {
+                        requestsViewModel.getRequest().getValue().setStatus(RequestAction.Pay.getValue());
+                    }
+                });
+    }
 
     @Nullable
     @Override
@@ -69,10 +91,6 @@ public class RequestDetailsFragment extends Fragment {
     private void init() {
         databaseManager = new DatabaseManager.Builder()
                 .build();
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            request = (PGRequest) bundle.getSerializable(ARG_REQUEST);
-        }
     }
 
     private void initLayout(View view) {
@@ -89,59 +107,64 @@ public class RequestDetailsFragment extends Fragment {
 
         TextView textViewStatus = view.findViewById(R.id.textViewStatus);
 
+        buttonAccept = view.findViewById(R.id.buttonAccept);
+        buttonReject = view.findViewById(R.id.buttonReject);
+        buttonPay = view.findViewById(R.id.buttonPay);
 
-        if (request == null) return;
+        requestsViewModel = new ViewModelProvider(requireActivity()).get(RequestsViewModel.class);
 
-        PGRoom pgRoom = request.getPgRoom();
-        if (pgRoom != null) {
-            textViewTitle.setText(pgRoom.getTitle());
-            textViewDescription.setText(pgRoom.getDescription());
-            textViewAddress.setText(pgRoom.getAddress());
-            textViewRent.setText(String.format("Rs. %s (per month)", pgRoom.getRent()));
-            textViewLocation.setText(pgRoom.getLocation());
+        requestsViewModel.getRequest().observe(getViewLifecycleOwner(), pgRequest -> {
 
-            User user;
-            if (Globals.user.getUserType().equals(UserType.USER.getValue())) {
-                user = request.getTargetUser();
-            } else {
-                user = request.getRequestedUser();
+            request = pgRequest;
+            if (request == null) return;
+
+            PGRoom pgRoom = request.getPgRoom();
+            if (pgRoom != null) {
+                textViewTitle.setText(pgRoom.getTitle());
+                textViewDescription.setText(pgRoom.getDescription());
+                textViewAddress.setText(pgRoom.getAddress());
+                textViewRent.setText(String.format("Rs. %s (per month)", pgRoom.getRent()));
+                textViewLocation.setText(pgRoom.getLocation());
+
+                User user;
+                if (Globals.user.getUserType().equals(UserType.USER.getValue())) {
+                    user = request.getTargetUser();
+                } else {
+                    user = request.getRequestedUser();
+                }
+
+                textViewName.setText(user.getDisplayName());
+
+                String phone = user.getPhone();
+
+                if (phone == null || phone.equals("")) {
+                    textViewPhone.setText("not available");
+                } else {
+                    textViewPhone.setText(phone);
+
+                    textViewPhone.setOnClickListener(v ->
+                            checkCallPermission(phone)
+                    );
+
+                }
+
+                textViewRequestOn.setText(String.format("Requested On: %s", DateUtil.getDate(request.getRequestTime())));
+
+                if (!request.getStatus().equals(RequestAction.Pending.getValue())) {
+                    buttonAccept.setVisibility(View.GONE);
+                    buttonReject.setVisibility(View.GONE);
+                    textViewStatus.setText(String.format("%sED", request.getStatus()));
+                } else {
+                    textViewStatus.setVisibility(View.GONE);
+                }
+
+                if (request.getStatus().equals(RequestAction.Accept.getValue())) {
+                    buttonPay.setVisibility(View.VISIBLE);
+                }
+
+                setImages(pgRoom);
             }
-
-            textViewName.setText(user.getDisplayName());
-
-            String phone = user.getPhone();
-
-            if (phone == null || phone.equals("")) {
-                textViewPhone.setText("not available");
-            } else {
-                textViewPhone.setText(phone);
-
-                textViewPhone.setOnClickListener(v ->
-                        checkCallPermission(phone)
-                );
-
-            }
-
-            textViewRequestOn.setText(String.format("Requested On: %s", DateUtil.getDate(request.getRequestTime())));
-
-            buttonAccept = view.findViewById(R.id.buttonAccept);
-            buttonReject = view.findViewById(R.id.buttonReject);
-            buttonPay = view.findViewById(R.id.buttonPay);
-
-            if (!request.getStatus().equals(RequestAction.Pending.getValue())) {
-                buttonAccept.setVisibility(View.GONE);
-                buttonReject.setVisibility(View.GONE);
-                textViewStatus.setText(String.format("%sED", request.getStatus()));
-            } else {
-                textViewStatus.setVisibility(View.GONE);
-            }
-
-            if (request.getStatus().equals(RequestAction.Accept.getValue())) {
-                buttonPay.setVisibility(View.VISIBLE);
-            }
-
-            setImages(pgRoom);
-        }
+        });
     }
 
     private void checkCallPermission(String phone) {
@@ -213,6 +236,13 @@ public class RequestDetailsFragment extends Fragment {
         for (String imgUrl : pgRoom.getImages()) {
             new ImageLoadTask().execute(imgUrl);
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Log.i("TAG", "onActivityResult: " + data.getStringExtra("addressLine"));
     }
 
     class ImageLoadTask extends AsyncTask<String, Integer, Bitmap> {

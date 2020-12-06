@@ -5,7 +5,7 @@ public enum UserType {
     PG("PG"),
     ADMIN("Admin");
 
-    private String value;
+    private final String value;
 
     UserType(String value) {
         this.value = value;
