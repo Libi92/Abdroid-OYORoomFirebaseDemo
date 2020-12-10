@@ -77,6 +77,7 @@ public class SearchView extends LinearLayout {
     }
 
     public void addItems(List<String> items) {
+        chipGroup.removeAllViews();
         for (String text : items) {
             Chip chip = new Chip(getContext());
             chip.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,

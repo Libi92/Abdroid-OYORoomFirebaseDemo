@@ -105,6 +105,8 @@ public class RequestDetailsFragment extends Fragment implements LifecycleOwner {
         TextView textViewRequestOn = view.findViewById(R.id.textViewRequestedOn);
         TextView textViewLocation = view.findViewById(R.id.textViewLocation);
 
+        TextView textViewPaymentStatus = view.findViewById(R.id.textViewPaymentStatus);
+
         TextView textViewStatus = view.findViewById(R.id.textViewStatus);
 
         buttonAccept = view.findViewById(R.id.buttonAccept);
@@ -125,6 +127,8 @@ public class RequestDetailsFragment extends Fragment implements LifecycleOwner {
                 textViewAddress.setText(pgRoom.getAddress());
                 textViewRent.setText(String.format("Rs. %s (per month)", pgRoom.getRent()));
                 textViewLocation.setText(pgRoom.getLocation());
+
+                configureMapView(textViewLocation, pgRoom);
 
                 User user;
                 if (Globals.user.getUserType().equals(UserType.USER.getValue())) {
@@ -158,13 +162,39 @@ public class RequestDetailsFragment extends Fragment implements LifecycleOwner {
                     textViewStatus.setVisibility(View.GONE);
                 }
 
-                if (request.getStatus().equals(RequestAction.Accept.getValue())) {
-                    buttonPay.setVisibility(View.VISIBLE);
+                if (Globals.user.getUserType().equals(UserType.USER.getValue())) {
+                    if (request.getStatus().equals(RequestAction.Accept.getValue())) {
+                        buttonPay.setVisibility(View.VISIBLE);
+                    }
+                } else if (Globals.user.getUserType().equals(UserType.PG.getValue())) {
+                    if (request.getStatus().equals(RequestAction.Accept.getValue())) {
+                        textViewPaymentStatus.setText("Payment Pending");
+                        textViewPaymentStatus.setVisibility(View.VISIBLE);
+                    } else if (request.getStatus().equals(RequestAction.Pay.getValue())) {
+                        textViewPaymentStatus.setText("Payment Complete");
+                        textViewPaymentStatus.setVisibility(View.VISIBLE);
+                    }
                 }
 
                 setImages(pgRoom);
             }
         });
+    }
+
+    private void configureMapView(TextView textViewLocation, PGRoom pgRoom) {
+        textViewLocation.setOnClickListener(v ->
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Open Map")
+                        .setMessage("Show this location on Google Map")
+                        .setPositiveButton("Ok", ((dialog, which) -> {
+                            String uri = "http://maps.google.co.in/maps?q=" + pgRoom.getLocation();
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                            requireContext().startActivity(intent);
+                        }))
+                        .setNegativeButton("Cancel", ((dialog, which) -> {
+                            dialog.dismiss();
+                        }))
+                        .show());
     }
 
     private void checkCallPermission(String phone) {

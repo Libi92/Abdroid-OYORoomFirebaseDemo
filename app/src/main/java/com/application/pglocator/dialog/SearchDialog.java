@@ -121,7 +121,7 @@ public class SearchDialog extends DialogFragment {
             for (PGRoom room : pgRooms) {
                 String location = room.getLocation().trim();
                 if (locationList.contains(location) || locationList.contains("*")) {
-                    if (minValue < room.getRent() && room.getRent() < maxValue) {
+                    if (minValue <= room.getRent() && room.getRent() <= maxValue) {
                         filterList.add(room);
                     }
                 }

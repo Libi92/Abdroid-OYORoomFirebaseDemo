@@ -96,6 +96,7 @@ public class PGDetailsFragment extends Fragment implements UserListener {
         TextView textViewLocation = view.findViewById(R.id.textViewLocation);
         TextView textViewMaxAllowed = view.findViewById(R.id.textViewMaxAllowed);
 
+        configureMapView(textViewLocation);
 
         textViewTitle.setText(pgRoom.getTitle());
         textViewDescription.setText(pgRoom.getDescription());
@@ -122,6 +123,22 @@ public class PGDetailsFragment extends Fragment implements UserListener {
         User user = new User();
         user.setUId(pgRoom.getUserId());
         databaseManager.getUser(user);
+    }
+
+    private void configureMapView(TextView textViewLocation) {
+        textViewLocation.setOnClickListener(v ->
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Open Map")
+                        .setMessage("Show this location on Google Map")
+                        .setPositiveButton("Ok", ((dialog, which) -> {
+                            String uri = "http://maps.google.co.in/maps?q=" + pgRoom.getLocation();
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                            requireContext().startActivity(intent);
+                        }))
+                        .setNegativeButton("Cancel", ((dialog, which) -> {
+                            dialog.dismiss();
+                        }))
+                        .show());
     }
 
     private void setFeedback() {
